@@ -12,16 +12,57 @@
 <body>
     <div id="map"></div>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-tilelayer-wmts@latest/dist/leaflet-tilelayer-wmts.min.js"></script>
     <script>
-        var map = L.map('map').setView([25.0330, 121.5654], 13);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
+        });
 
-        L.marker([25.0330, 121.5654]).addTo(map)
-            .bindPopup('這是台北101。')
-            .openPopup();
+        var map = L.map('map', {
+            center: [25.0330, 121.5654],
+            zoom: 13,
+            layers: [osm]
+        });
+
+        var satellite = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data: &copy; <a href="https://www.opentopomap.org/">OpenTopoMap</a> contributors'
+        });
+
+        var topo = L.tileLayer.wms('https://ahocevar.com/geoserver/wms', {
+            layers: 'topp:states',
+            format: 'image/png',
+            transparent: true,
+            attribution: '© OpenStreetMap contributors'
+        });
+
+        var nlscWmts = L.tileLayer.wmts('https://wmts.nlsc.gov.tw/wmts/EMAP/default/GoogleMapsCompatible/{z}/{y}/{x}', {
+            tilematrixSet: 'GoogleMapsCompatible',
+            format: 'image/png',
+            attribution: '&copy; <a href="https://www.nlsc.gov.tw/">NLSC</a>'
+        });
+
+        var marker = L.marker([25.0330, 121.5654]).bindPopup('這是台北101。');
+        var circle = L.circle([25.037, 121.563], { radius: 200, color: 'red', fillColor: '#f03', fillOpacity: 0.5 }).bindPopup('我是一個圓。');
+        var polygon = L.polygon([[25.033, 121.56], [25.035, 121.58], [25.032, 121.57]]).bindPopup('我是一個多邊形。');
+
+        var overlayMaps = {
+            "Marker": marker,
+            "Circle": circle,
+            "Polygon": polygon,
+            "NLSC WMTS": nlscWmts
+        };
+
+        var baseMaps = {
+            "OpenStreetMap": osm,
+            "Satellite": satellite,
+            "Topographic": topo
+        };
+
+        L.control.layers(baseMaps, overlayMaps).addTo(map);
+
+        marker.addTo(map);
+        circle.addTo(map);
+        polygon.addTo(map);
     </script>
 </body>
 </html>
