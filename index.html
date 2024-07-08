@@ -1,76 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>GIS Website</title>
+    <title>Taijiang GIS Map</title>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <style>
-        #map { height: 600px; }
-        #wmtsButton {
-            position: absolute;
-            top: 10px;
-            left: 50px;
-            z-index: 1000;
-            background-color: white;
-            padding: 10px;
-            border: 2px solid #444;
-            cursor: pointer;
-        }
+        #map { height: 100vh; }
+        .leaflet-control-layers { max-height: 400px; overflow-y: auto; }
     </style>
 </head>
 <body>
     <div id="map"></div>
-    <div id="wmtsButton">顯示NLSC WMTS</div>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-tilelayer-wmts@latest/dist/leaflet-tilelayer-wmts.min.js"></script>
     <script>
+        // 初始化地圖
+        var map = L.map('map').setView([23.048, 120.190], 12);
+
+        // 添加OpenStreetMap圖層
         var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        });
+        }).addTo(map);
 
-        var map = L.map('map', {
-            center: [25.0330, 121.5654],
-            zoom: 13,
-            layers: [osm]
-        });
-
+        // 添加NLSC WMTS圖層
         var nlscWmts = L.tileLayer.wmts('https://wmts.nlsc.gov.tw/wmts/EMAP/default/GoogleMapsCompatible/{z}/{y}/{x}', {
             tilematrixSet: 'GoogleMapsCompatible',
             format: 'image/png',
             attribution: '&copy; <a href="https://www.nlsc.gov.tw/">NLSC</a>'
         });
 
-        var marker = L.marker([25.0330, 121.5654]).bindPopup('這是台北101。');
-        var circle = L.circle([25.037, 121.563], { radius: 200, color: 'red', fillColor: '#f03', fillOpacity: 0.5 }).bindPopup('我是一個圓。');
-        var polygon = L.polygon([[25.033, 121.56], [25.035, 121.58], [25.032, 121.57]]).bindPopup('我是一個多邊形。');
+        // 添加其他圖層
+        var satellite = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data: &copy; <a href="https://www.opentopomap.org/">OpenTopoMap</a> contributors'
+        });
 
-        var overlayMaps = {
-            "Marker": marker,
-            "Circle": circle,
-            "Polygon": polygon,
-            "NLSC WMTS": nlscWmts
+        var topo = L.tileLayer.wms('https://ahocevar.com/geoserver/wms', {
+            layers: 'topp:states',
+            format: 'image/png',
+            transparent: true,
+            attribution: '© OpenStreetMap contributors'
+        });
+
+        // 圖層控制
+        var baseMaps = {
+            "OpenStreetMap": osm,
+            "Satellite": satellite,
+            "Topographic": topo
         };
 
-        var baseMaps = {
-            "OpenStreetMap": osm
+        var overlayMaps = {
+            "NLSC WMTS": nlscWmts
         };
 
         L.control.layers(baseMaps, overlayMaps).addTo(map);
 
-        marker.addTo(map);
-        circle.addTo(map);
-        polygon.addTo(map);
-
-        document.getElementById('wmtsButton').addEventListener('click', function() {
-            if (map.hasLayer(nlscWmts)) {
-                map.removeLayer(nlscWmts);
-                this.innerText = '顯示NLSC WMTS';
-            } else {
-                map.addLayer(nlscWmts);
-                this.innerText = '隱藏NLSC WMTS';
-            }
-        });
+        // 添加一些標記和圖形
+        var marker = L.marker([23.048, 120.190]).addTo(map).bindPopup('這是台江國家公園。');
+        var circle = L.circle([23.048, 120.185], { radius: 500, color: 'red', fillColor: '#f03', fillOpacity: 0.5 }).addTo(map).bindPopup('這是一個圓。');
+        var polygon = L.polygon([
+            [23.047, 120.187],
+            [23.048, 120.190],
+            [23.049, 120.189]
+        ]).addTo(map).bindPopup('這是一個多邊形。');
     </script>
 </body>
 </html>
